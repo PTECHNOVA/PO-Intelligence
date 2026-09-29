@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>PO Intelligence</title>
+    <style>
+        :root {
+            --ink: #1b1d2e;
+            --mut: #5d6279;
+            --line: #e2e4ee;
+            --bg: #f5f6fb;
+            --card: #fff;
+            --pri: #4f46e5;
+            --pri2: #eef0ff;
+            --ok: #047857;
+            --warn: #b45309;
+            --bad: #b91c1c;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-size: 14px
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+            color: inherit
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--pri);
+            outline-offset: 2px
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 20px;
+            background: var(--card);
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            flex-wrap: wrap
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 16px
+        }
+
+        .brand small {
+            display: block;
+            font-weight: 400;
+            color: var(--mut);
+            font-size: 11px
+        }
+
+        nav {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px
+        }
+
+        nav button {
+            border: 0;
+            background: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--mut);
+            font-weight: 600
+        }
+
+        nav button[aria-current=page] {
+            background: var(--pri2);
+            color: var(--pri)
+        }
+
+        .sp {
+            flex: 1
+        }
+
+        .pill {
+            border: 1px solid var(--line);
+            border-radius: 99px;
+            padding: 4px 10px;
+            font-size: 12px;
+            display: inline-flex;
+            gap: 6px;
+            align-items: center
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #9aa0b8
+        }
+
+        .busy .dot {
+            background: var(--warn)
+        }
+
+        .ok .dot {
+            background: var(--ok)
+        }
+
+        .err .dot {
+            background: var(--bad)
+        }
+
+        main {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 20px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(300px, 380px) 1fr;
+            gap: 16px;
+            align-items: start
+        }
+
+        @media(max-width:900px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px
+        }
+
+        h2 {
+            font-size: 15px;
+            margin: 0 0 12px
+        }
+
+        h3 {
+            font-size: 13px;
+            margin: 0 0 8px
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--mut);
+            margin-bottom: 8px
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px;
+            background: #fff;
+            margin-top: 4px
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            width: auto
+        }
+
+        .btn.p {
+            background: var(--pri);
+            border-color: var(--pri);
+            color: #fff
+        }
+
+        .btn:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        .three {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px
+        }
+
+        @media(max-width:600px) {
+
+            .two,
+            .three {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .drop {
+            border: 2px dashed #c3c7e6;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--mut)
+        }
+
+        .drop.over {
+            border-color: var(--pri);
+            background: var(--pri2)
+        }
+
+        .q {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px
+        }
+
+        .thumb {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fafafa;
+            font-size: 10px;
+            padding: 4px;
+            word-break: break-all
+        }
+
+        .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0
+        }
+
+        .thumb button {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            z-index: 1;
+            border: 0;
+            background: #000b;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer
+        }
+
+        .tw {
+            overflow-x: auto
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 640px
+        }
+
+        th {
+            font-size: 12px;
+            text-align: left;
+            color: var(--mut);
+            padding: 4px
+        }
+
+        td {
+            padding: 3px
+        }
+
+        td input {
+            margin: 0
+        }
+
+        .tot {
+            margin-left: auto;
+            max-width: 300px
+        }
+
+        .tot div {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0
+        }
+
+        .tot .g {
+            border-top: 2px solid var(--ink);
+            font-weight: 700;
+            font-size: 16px;
+            margin-top: 4px
+        }
+
+        .badge {
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--pri2);
+            color: var(--pri)
+        }
+
+        .badge.approved {
+            background: #d1fae5;
+            color: var(--ok)
+        }
+
+        .msg {
+            font-size: 12px;
+            color: var(--bad);
+            margin-top: 8px
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--mut)
+        }
+
+        .hist {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            border-bottom: 1px solid var(--line);
+            padding: 10px 0;
+            flex-wrap: wrap
+        }
+
+        .hist:last-child {
+            border: 0
+        }
+
+        #toasts {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            display: grid;
+            gap: 8px;
+            z-index: 20
+        }
+
+        .toast {
+            background: var(--ink);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            max-width: 340px
+        }
+
+        .toast.e {
+            background: var(--bad)
+        }
+
+        .hide {
+            display: none !important
+        }
+
+        .empty {
+            color: var(--mut);
+            text-align: center;
+            padding: 24px
+        }
+
+        @media print {
+
+            header,
+            #src,
+            #toasts,
+            .noprint,
+            #hist,
+            #settings {
+                display: none !important
+            }
+
+            body {
+                background: #fff
+            }
+
+            main {
+                padding: 0
+            }
+
+            .grid {
+                display: block
+            }
+
+            .card {
+                border: 0;
+                padding: 0
+            }
+
+            input,
+            textarea {
+                border: 0 !important;
+                padding: 0 !important;
+                background: none !important;
+                resize: none
+            }
+
+            td button {
+                display: none
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                transition: none !important;
+                animation: none !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand"><svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+                <rect width="32" height="32" rx="8" fill="#4f46e5" />
+                <path d="M10 8h9l4 4v12H10z" fill="none" stroke="#fff" stroke-width="2" />
+                <circle cx="16" cy="19" r="2.2" fill="#fff" />
+                <path d="M16 14v1.5M16 22.5V24M11.5 19H13M19 19h1.5" stroke="#fff" stroke-width="1.5" />
+            </svg>
+            <div>PO Intelligence<small>AI-Powered Purchase Order Intelligence</small></div>
+        </div>
+        <nav aria-label="Main"><button data-v="work" aria-current="page">Workspace</button><button data-v="hist">History
+                <span id="hc" class="badge">0</span></button><button data-v="settings">Settings</button></nav>
+        <span class="sp"></span><span id="st" class="pill" role="status" aria-live="polite"><i
+                class="dot"></i><span>Idle</span></span><span id="apiSt" class="pill"><i class="dot"></i><span>API not
+                tested</span></span>
+    </header>
+    <main>
+        <section id="work">
+            <div class="grid">
+                <div id="src">
+                    <div class="card">
+                        <h2>Source</h2>
+                        <div class="drop" id="drop" tabindex="0" role="button"
+                            aria-label="Upload purchase order images or text files">Drop PNG, JPG, WebP or TXT files
+                            here, or click to browse<input id="fi" type="file" multiple
+                                accept="image/png,image/jpeg,image/webp,text/plain,.txt" class="hide"></div>
+                        <div class="q" id="queue"></div>
+                        <div id="ferr" class="msg" role="alert"></div>
+                        <label style="margin-top:12px">Paste PO text<textarea id="txt"
+                                placeholder="Paste purchase order text here"></textarea></label>
+                        <div class="row"><button class="btn" id="clrTxt">Clear text</button><button class="btn"
+                                id="clrFiles">Remove all files</button></div>
+                    </div>
+                    <div class="card">
+                        <h2>Extract</h2>
+                        <label>Extraction engine<select id="mode">
+                                <option value="auto">Auto: Gemini AI, then local fallback</option>
+                                <option value="ocr">OCR, then local parser</option>
+                                <option value="local">Local parser only (no network)</option>
+                            </select></label>
+                        <button class="btn p" id="go" style="width:100%">Process PO</button>
+                        <div id="perr" class="msg" role="alert"></div>
+                        <details id="ocrBox" class="hide" style="margin-top:10px">
+                            <summary>Aggregated OCR text</summary><textarea id="ocrOut" readonly></textarea>
+                        </details>
+                    </div>
+                    <div class="card">
+                        <h2>Sample purchase orders</h2>
+                        <p class="hint">Fictional data for testing only.</p>
+                        <label>Sample<select id="smp"></select></label>
+                        <div class="row"><button class="btn" id="loadS">Load sample text</button><button class="btn"
+                                id="rndS">Random sample</button></div>
+                    </div>
+                </div>
+                <div class="card" id="poDoc">
+                    <div class="row">
+                        <h2 style="margin:0">Purchase order</h2><span id="stage" class="badge">Draft</span><span
+                            id="conf" class="badge"></span><span class="sp"></span>
+                        <span class="row noprint"><button class="btn" id="clrPO">Clear PO</button><button class="btn"
+                                id="jsonB">Export JSON</button><button class="btn" id="csvB">Export CSV</button><button
+                                class="btn" id="prtB">Print</button><button class="btn p" id="saveB">Approve &amp;
+                                save</button></span>
+                    </div>
+                    <div id="poForm"></div>
+                </div>
+            </div>
+        </section>
+        <section id="hist" class="hide">
+            <div class="card">
+                <div class="row">
+                    <h2 style="margin:0">History</h2><span class="sp"></span><button class="btn" id="clrH">Clear all
+                        history</button>
+                </div>
+                <div id="hl"></div>
+            </div>
+        </section>
+        <section id="settings" class="hide">
+            <div class="card">
+                <h2>AI provider: Google Gemini</h2>
+                <div class="three"><label>API key<input id="aiKey" type="password"
+                            autocomplete="off"></label><label>Model<input id="aiModel"></label><label>Endpoint<input
+                            id="aiUrl"></label></div>
+                <div class="row"><button class="btn" id="showK">Show / hide keys</button><button class="btn"
+                        id="tAI">Test Gemini connection</button></div>
+            </div>
+            <div class="card">
+                <h2>OCR provider</h2>
+                <div class="two"><label>Provider<select id="ocrP"></select></label><label>Endpoint<input
+                            id="ocrUrl"></label><label>API key<input id="ocrKey" type="password"
+                            autocomplete="off"></label><label>Model<input id="ocrModel"></label></div>
+                <div class="row"><button class="btn" id="tOCR">Test OCR provider</button></div>
+            </div>
+            <div class="card">
+                <h2>Security</h2><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rem"
+                        style="width:auto;margin:0"> Remember API keys in this browser (localStorage). Off = keys last
+                    only for this tab session.</label>
+                <p class="hint">Keys entered here live in the browser and are visible to anyone with access to it. For
+                    production, route calls through a backend or serverless proxy. Keys are never written to history or
+                    logs.</p>
+                <div class="row"><button class="btn p" id="saveCfg">Save settings</button><button class="btn"
+                        id="resetCfg">Reset to defaults</button></div>
+                <div id="cmsg" class="hint" role="status"></div>
+            </div>
+        </section>
+    </main>
+    <div id="toasts" aria-live="polite"></div>
+    <script>
+        /* ===== Default provider configuration: edit here ===== */
+        const DEFAULTS = {
+            ai: { apiKey: '', model: 'gemini-3-flash-preview', baseUrl: 'https://generativelanguage.googleapis.com/v1beta' },
+            ocr: { provider: 'docker_jina', apiKey: '', model: 'hf.co/jinaai/jina-ocr-v1', endpoint: 'http://localhost:11434/v1/chat/completions' }, remember: false
+        };
+        const OCR_PROVIDERS = {
+            docker_jina: { name: 'Local Jina OCR / OpenAI-compatible', url: 'http://localhost:11434/v1/chat/completions', kind: 'openai' },
+            docker_8000: { name: 'Local OCR Service', url: 'http://localhost:8000/v1/chat/completions', kind: 'openai' },
+            hf_jina: { name: 'HuggingFace Jina OCR', url: 'https://api-inference.huggingface.co/models/jinaai/jina-ocr-v1', kind: 'hf' },
+            ocrspace: { name: 'OCR.space', url: 'https://api.ocr.space/parse/image', kind: 'ocrspace' }
+        };
+        const CUR = { USD: '$', EUR: '€', GBP: '£', INR: '₹', JPY: '¥', CAD: 'C$', AUD: 'A$' };
+        const OK_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'text/plain'], MAX = 8 * 1024 * 1024;
+        const normalizeEndpoint = (value, label = 'Endpoint') => {
+            const raw = String(value ?? '').trim(); if (!raw) return '';
+            let url = raw.replace(/\s+/g, '');
+            if (!/^https?:\/\//i.test(url)) {
+                const host = url.replace(/^https?:\/\//i, '').split(/[/?#]/)[0];
+                url = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::\d+)?$/i.test(host) ? 'http://' + url : 'https://' + url;
+            }
+            try {
+                const parsed = new URL(url); if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error(); return parsed.toString();
+            } catch (e) { throw new Error(label + ' endpoint is not a valid URL. Include http:// or https:// and verify the hostname.') }
+        };
+        const describeNetworkFailure = (url, error) => {
+            const host = (() => { try { return new URL(url).hostname } catch (e) { return '' } })();
+            if (error && error.name === 'AbortError') return 'Request timed out or was cancelled.';
+            if (/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])$/i.test(host)) return 'Local endpoint unreachable. Start the local service or use a remote URL with CORS enabled.';
+            if (error && error instanceof TypeError) return 'Network failure: the endpoint is unreachable, blocked by CORS, or the URL is invalid. Verify the host, protocol, and whether the API allows browser requests.';
+            return error && error.message ? error.message : 'Network failure: the endpoint is unreachable, blocked by CORS, or the URL is invalid.';
+        };
+        const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const num = (v, min = 0) => { v = parseFloat(String(v ?? '').replace(/[^0-9.\-]/g, '')); return isFinite(v) ? Math.max(min, v) : 0 };
+        const party = () => ({ name: '', address: '', contact: '', taxId: '' });
+        const blank = () => ({ poNumber: '', issueDate: '', dueDate: '', paymentTerms: '', currency: 'USD', vendor: party(), buyer: party(), items: [{ description: '', sku: '', quantity: 1, unitPrice: 0, taxRate: 0 }], shipping: 0, discount: 0, confidenceRating: 'Unknown', notes: '' });
+        let po = blank(), stage = 'Draft', files = [], busy = false, ctrl = null, cfg = loadCfg();
+        /* ---------- storage ---------- */
+        function loadCfg() {
+            let c = JSON.parse(JSON.stringify(DEFAULTS)); try {
+                const s = JSON.parse(localStorage.getItem('poi.config') || '{}'); for (const k of ['ai', 'ocr']) Object.assign(c[k], s[k] || {}); c.remember = !!s.remember;
+                const keys = JSON.parse((c.remember ? localStorage : sessionStorage).getItem('poi.keys') || '{}'); c.ai.apiKey = keys.ai || ''; c.ocr.apiKey = keys.ocr || ''
+            } catch (e) { } return c
+        }
+        function saveCfg() {
+            const c = JSON.parse(JSON.stringify(cfg)); delete c.ai.apiKey; delete c.ocr.apiKey;
+            try {
+                localStorage.setItem('poi.config', JSON.stringify(c)); localStorage.removeItem('poi.keys'); sessionStorage.removeItem('poi.keys');
+                (cfg.remember ? localStorage : sessionStorage).setItem('poi.keys', JSON.stringify({ ai: cfg.ai.apiKey, ocr: cfg.ocr.apiKey }))
+            } catch (e) { toast('Could not save settings: storage unavailable.', 1) }
+        }
+        const hist = () => { try { return JSON.parse(localStorage.getItem('poi.history') || '[]') } catch (e) { return [] } };
+        const setHist = h => { try { localStorage.setItem('poi.history', JSON.stringify(h)); $('#hc').textContent = h.length } catch (e) { toast('Storage failure: could not save history.', 1) } };
+        /* ---------- ui helpers ---------- */
+        function toast(m, e) { const t = document.createElement('div'); t.className = 'toast' + (e ? ' e' : ''); t.textContent = m; $('#toasts').append(t); setTimeout(() => t.remove(), 4500) }
+        function status(t, k = '') { const s = $('#st'); s.className = 'pill ' + k; s.lastElementChild.textContent = t }
+        function apiStatus(t, k) { const s = $('#apiSt'); s.className = 'pill ' + k; s.lastElementChild.textContent = t }
+        document.querySelectorAll('nav button').forEach(b => b.onclick = () => { document.querySelectorAll('nav button').forEach(x => x.removeAttribute('aria-current')); b.setAttribute('aria-current', 'page');['work', 'hist', 'settings'].forEach(v => $('#' + v).classList.toggle('hide', v !== b.dataset.v)); if (b.dataset.v === 'hist') renderHist() });
+        /* ---------- calculations ---------- */
+        function calc(p) { let sub = 0, tax = 0; const rows = p.items.map(i => { const s = i.quantity * i.unitPrice, t = s * i.taxRate / 100; sub += s; tax += t; return s + t }); return { rows, sub, tax, grand: sub + p.shipping + tax - p.discount } }
+        const sym = () => CUR[po.currency] || po.currency + ' ', money = v => sym() + (isFinite(v) ? v : 0).toFixed(2);
+        function normalize(o) {
+            o = o && typeof o === 'object' ? o : {}; const s = v => String(v ?? '').trim(), pt = p => ({ name: s(p?.name), address: s(p?.address), contact: s(p?.contact), taxId: s(p?.taxId) });
+            const items = (Array.isArray(o.items) ? o.items : []).map(i => ({ description: s(i?.description), sku: s(i?.sku), quantity: num(i?.quantity), unitPrice: num(i?.unitPrice), taxRate: Math.min(100, num(i?.taxRate)) }));
+            const lv = s(o.confidenceRating).toLowerCase();
+            return { poNumber: s(o.poNumber), issueDate: s(o.issueDate), dueDate: s(o.dueDate), paymentTerms: s(o.paymentTerms), currency: s(o.currency).toUpperCase() || 'USD', vendor: pt(o.vendor), buyer: pt(o.buyer), items: items.length ? items : blank().items, shipping: num(o.shipping), discount: num(o.discount), confidenceRating: ['high', 'medium', 'low'].includes(lv) ? lv[0].toUpperCase() + lv.slice(1) : 'Unknown', notes: s(o.notes) }
+        }
+        /* ---------- PO editor ---------- */
+        const F = (l, path, type = 'text') => `<label>${l}<input data-p="${path}" type="${type}" value="${esc(path.split('.').reduce((a, k) => a[k], po))}"></label>`;
+        function renderPO() {
+            const cur = Object.keys(CUR).map(c => `<option${c === po.currency ? ' selected' : ''}>${c}</option>`).join('') + (CUR[po.currency] ? '' : `<option selected>${esc(po.currency)}</option>`);
+            $('#poForm').innerHTML = `<div class="three" style="margin-top:12px">${F('PO number', 'poNumber')}${F('Issue date', 'issueDate')}${F('Due date', 'dueDate')}${F('Payment terms', 'paymentTerms')}<label>Currency<select data-p="currency">${cur}</select></label></div>
+<div class="two"><div><h3>Vendor</h3>${['name', 'address', 'contact', 'taxId'].map(k => F({ name: 'Name', address: 'Address', contact: 'Contact', taxId: 'Tax ID' }[k], 'vendor.' + k)).join('')}</div>
+<div><h3>Buyer</h3>${['name', 'address', 'contact', 'taxId'].map(k => F({ name: 'Name', address: 'Address', contact: 'Contact', taxId: 'Tax ID' }[k], 'buyer.' + k)).join('')}</div></div>
+<h3>Line items</h3><div class="tw"><table><thead><tr><th>SKU</th><th>Description</th><th>Qty</th><th>Unit price</th><th>Tax %</th><th>Line total</th><th></th></tr></thead><tbody>${po.items.map((it, i) => `<tr><td><input data-p="items.${i}.sku" aria-label="SKU" value="${esc(it.sku)}"></td><td><input data-p="items.${i}.description" aria-label="Description" value="${esc(it.description)}"></td><td><input data-n="items.${i}.quantity" aria-label="Quantity" type="number" min="0" step="any" value="${it.quantity}"></td><td><input data-n="items.${i}.unitPrice" aria-label="Unit price" type="number" min="0" step="any" value="${it.unitPrice}"></td><td><input data-n="items.${i}.taxRate" aria-label="Tax rate" type="number" min="0" max="100" step="any" value="${it.taxRate}"></td><td id="lt${i}"></td><td><button class="btn noprint" data-rm="${i}" aria-label="Remove line ${i + 1}">✕</button></td></tr>`).join('')}</tbody></table></div>
+<button class="btn noprint" id="addRow" style="margin:8px 0">Add line item</button>
+<div class="two"><div><div class="two">${F('Shipping', 'shipping', 'number').replace('<input', '<input min="0" step="any" data-n="shipping"').replace(' data-p="shipping"', '')}${F('Discount', 'discount', 'number').replace('<input', '<input min="0" step="any" data-n="discount"').replace(' data-p="discount"', '')}</div><label>Notes<textarea data-p="notes">${esc(po.notes)}</textarea></label></div><div class="tot" id="tot"></div></div>`;
+            totals(); $('#conf').textContent = po.confidenceRating === 'Unknown' ? 'Confidence: unknown' : 'Confidence: ' + po.confidenceRating; $('#stage').textContent = stage; $('#stage').className = 'badge ' + (stage === 'Approved' ? 'approved' : '')
+        }
+        function totals() {
+            const t = calc(po); t.rows.forEach((r, i) => { const e = $('#lt' + i); if (e) e.textContent = money(r) });
+            $('#tot').innerHTML = `<div><span>Subtotal</span><span>${money(t.sub)}</span></div><div><span>Tax</span><span>${money(t.tax)}</span></div><div><span>Shipping</span><span>${money(po.shipping)}</span></div><div><span>Discount</span><span>−${money(po.discount)}</span></div><div class="g"><span>Grand total</span><span>${money(t.grand)}</span></div>`
+        }
+        function setPath(p, v) { const k = p.split('.'); let o = po; while (k.length > 1) o = o[k.shift()]; o[k[0]] = v }
+        $('#poForm').addEventListener('input', e => { const t = e.target; if (t.dataset.p) { setPath(t.dataset.p, t.value); if (t.dataset.p === 'currency') totals() } else if (t.dataset.n) { setPath(t.dataset.n, num(t.value)); totals() } if (stage === 'Approved') { stage = 'Extracted'; $('#stage').textContent = 'Edited'; $('#stage').className = 'badge' } });
+        $('#poForm').addEventListener('change', e => { if (e.target.dataset.p === 'currency') renderPO() });
+        $('#poForm').addEventListener('click', e => {
+            if (e.target.id === 'addRow') { po.items.push({ description: '', sku: '', quantity: 1, unitPrice: 0, taxRate: 0 }); renderPO() }
+            if (e.target.dataset.rm !== undefined && po.items.length > 1) { po.items.splice(+e.target.dataset.rm, 1); renderPO() }
+        });
+        /* ---------- files ---------- */
+        const fid = f => f.name + f.size + f.lastModified;
+        function addFiles(list) {
+            const errs = []; for (const f of list) {
+                const ty = f.type || (/\.txt$/i.test(f.name) ? 'text/plain' : '');
+                if (!OK_TYPES.includes(ty)) { errs.push(f.name + ': unsupported type'); continue } if (f.size > MAX) { errs.push(f.name + ': larger than 8 MB'); continue }
+                if (files.some(x => fid(x.f) === fid(f))) { errs.push(f.name + ': duplicate'); continue }
+                const o = { f, ty, url: ty.startsWith('image') ? URL.createObjectURL(f) : null }; files.push(o);
+                if (ty === 'text/plain') f.text().then(t => { $('#txt').value = ($('#txt').value ? $('#txt').value + '\n\n' : '') + t }).catch(() => toast('Could not read ' + f.name, 1))
+            }
+            $('#ferr').textContent = errs.join('; '); drawQueue()
+        }
+        function drawQueue() { const q = $('#queue'); q.innerHTML = ''; files.forEach((o, i) => { const d = document.createElement('div'); d.className = 'thumb'; d.title = o.f.name; d.innerHTML = (o.url ? `<img alt="${esc(o.f.name)}" src="${o.url}">` : esc(o.f.name)) + `<button aria-label="Remove ${esc(o.f.name)}">✕</button>`; d.querySelector('button').onclick = () => { o.url && URL.revokeObjectURL(o.url); files.splice(i, 1); drawQueue() }; q.append(d) }) }
+        const drop = $('#drop'); drop.onclick = () => $('#fi').click(); drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#fi').click() } };
+        $('#fi').onchange = e => { addFiles([...e.target.files]); e.target.value = '' };
+        drop.ondragover = e => { e.preventDefault(); drop.classList.add('over') }; drop.ondragleave = () => drop.classList.remove('over'); drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); addFiles([...e.dataTransfer.files]) };
+        $('#clrFiles').onclick = () => { files.forEach(o => o.url && URL.revokeObjectURL(o.url)); files = []; drawQueue(); $('#ferr').textContent = '' }; $('#clrTxt').onclick = () => $('#txt').value = '';
+        /* ---------- network ---------- */
+        async function http(url, opt = {}, ms = 90000) {
+            const target = normalizeEndpoint(url, 'Endpoint'); if (!target) throw new Error('Endpoint is empty. Add a valid URL in settings.');
+            ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort('timeout'), ms);
+            try {
+                const r = await fetch(target, { ...opt, signal: ctrl.signal }); if (!r.ok) {
+                    let d = ''; try { d = (await r.json())?.error?.message || '' } catch (e) { }
+                    throw new Error(r.status === 429 ? 'Rate limit reached (HTTP 429). Wait a moment and retry.' : [401, 403].includes(r.status) ? `Authentication failed (HTTP ${r.status}). Check the API key.` : `HTTP ${r.status}${d ? ': ' + String(d).slice(0, 200) : ''}`)
+                }
+                return await r.json()
+            } catch (e) {
+                if (e.name === 'AbortError') throw new Error('Request timed out or was cancelled.');
+                if (e instanceof TypeError || /Failed to fetch/i.test(String(e?.message || ''))) throw new Error(describeNetworkFailure(target, e));
+                throw e
+            } finally { clearTimeout(to) }
+        }
+        const b64 = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('Could not read ' + f.name)); r.readAsDataURL(f) });
+        const PROMPT = `Extract the purchase order into JSON only with keys: poNumber, issueDate, dueDate, paymentTerms, currency (ISO code), vendor{name,address,contact,taxId}, buyer{name,address,contact,taxId}, items[{description,sku,quantity,unitPrice,taxRate (percent)}], shipping, discount, confidenceRating (High, Medium or Low), notes. Do not invent missing data: use "" for unknown strings and 0 for unknown numbers. Preserve values exactly.`;
+        const AI = {
+            async extract(text, imgs) {
+                const c = cfg.ai; if (!c.apiKey) throw new Error('Gemini API key is not set. Open Settings.');
+                const parts = [{ text: PROMPT + (text ? '\n\nPO TEXT:\n' + text : '') }]; for (const o of imgs) { const d = await b64(o.f); parts.push({ inlineData: { mimeType: o.ty === 'image/jpg' ? 'image/jpeg' : o.ty, data: d.split(',')[1] } }) }
+                const r = await http(`${c.baseUrl.replace(/\/$/, '')}/models/${encodeURIComponent(c.model)}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': c.apiKey }, body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }) });
+                const t = r?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || ''; try { return normalize(JSON.parse(t.replace(/^```json|```$/gm, '').trim())) } catch (e) { throw new Error('Malformed AI response: not valid JSON.') }
+            },
+            async test() { const c = cfg.ai; if (!c.apiKey) throw new Error('API key is empty.'); await http(`${c.baseUrl.replace(/\/$/, '')}/models/${encodeURIComponent(c.model)}`, { headers: { 'x-goog-api-key': c.apiKey } }, 15000) }
+        };
+        const OCR = {
+            async run(f) {
+                const c = cfg.ocr, k = OCR_PROVIDERS[c.provider]?.kind, d = await b64(f.f);
+                if (k === 'openai') return (await http(c.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(c.apiKey ? { Authorization: 'Bearer ' + c.apiKey } : {}) }, body: JSON.stringify({ model: c.model, messages: [{ role: 'user', content: [{ type: 'text', text: 'Extract all text from this document.' }, { type: 'image_url', image_url: { url: d } }] }] }) }))?.choices?.[0]?.message?.content || '';
+                if (k === 'hf') { const r = await http(c.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.apiKey }, body: JSON.stringify({ inputs: d }) }); const x = Array.isArray(r) ? r[0] : r; return x?.generated_text || x?.text || '' }
+                if (k === 'ocrspace') { const fd = new FormData(); fd.append('apikey', c.apiKey || 'helloworld'); fd.append('base64Image', d); fd.append('language', 'eng'); const r = await http(c.endpoint, { method: 'POST', body: fd }); if (r.IsErroredOnProcessing) throw new Error('OCR.space: ' + [].concat(r.ErrorMessage).join(' ')); return (r.ParsedResults || []).map(p => p.ParsedText).join('\n') }
+                throw new Error('Unsupported OCR provider.')
+            },
+            async test() {
+                const canvas = document.createElement('canvas'); canvas.width = 480; canvas.height = 120;
+                const context = canvas.getContext('2d'); context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height);
+                context.fillStyle = '#111'; context.font = 'bold 48px sans-serif'; context.fillText('OCR TEST 123', 24, 78);
+                const image = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                if (!image) throw new Error('Could not create the OCR test image.');
+                await this.run({ f: new File([image], 'ocr-test.png', { type: 'image/png' }), ty: 'image/png' })
+            }
+        };
+        /* ---------- local heuristic parser ---------- */
+        function parseLocal(text) {
+            const p = blank(), L = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean); if (!L.length) return p; p.items = [];
+            const D = '(\\d{4}-\\d{2}-\\d{2}|\\d{1,2}[\\/.-]\\d{1,2}[\\/.-]\\d{2,4}|[A-Za-z]{3,9}\\.? \\d{1,2},? \\d{4})', g = (re, src = text) => { const m = String(src).match(re); return m ? m[1].trim() : '' };
+            p.poNumber = g(/(?:P\.?O\.?|purchase\s+order)\s*(?:no\.?|number|#)?\s*[:#]?\s*([A-Z0-9][A-Z0-9\-\/]{2,})/i);
+            p.issueDate = g(new RegExp('(?:issue[d]?\\s*date|order\\s*date|date)\\s*[:\\-]?\\s*' + D, 'i')); p.dueDate = g(new RegExp('(?:due|delivery|deliver\\s*by|required)\\s*(?:date)?\\s*[:\\-]?\\s*' + D, 'i'));
+            p.paymentTerms = g(/(?:payment\s*)?terms\s*[:\-]\s*(.+)/i);
+            const cm = text.match(/\b(USD|EUR|GBP|INR|JPY|CAD|AUD)\b/); p.currency = cm ? cm[1] : /€/.test(text) ? 'EUR' : /£/.test(text) ? 'GBP' : /₹/.test(text) ? 'INR' : 'USD';
+            p.vendor.name = g(/(?:vendor|supplier|seller|from)\s*[:\-]\s*(.+)/i); p.buyer.name = g(/(?:buyer|bill\s*to|purchaser|customer)\s*[:\-]\s*(.+)/i);
+            p.vendor.address = g(/vendor\s*address\s*[:\-]\s*(.+)/i); p.buyer.address = g(/(?:buyer|bill\s*to)\s*address\s*[:\-]\s*(.+)/i);
+            const money = re => { const m = text.match(re); return m ? num(m[1]) : 0 };
+            p.shipping = money(/(?:shipping|freight|delivery\s*charge)[^\d\n]{0,20}([\d,]+\.?\d*)/i); p.discount = money(/(?:discount|rebate)[^\d\n]{0,20}([\d,]+\.?\d*)/i);
+            const tr = g(/tax[^\d\n]{0,15}(\d+(?:\.\d+)?)\s*%/i);
+            for (const l of L) {
+                if (/^(sub\s*total|total|grand|tax|shipping|freight|discount|vat|amount)/i.test(l)) continue;
+                let m = l.match(/^(?:([A-Z0-9][A-Z0-9\-_.]{2,})\s+)?(.+?)\s+(\d+(?:\.\d+)?)\s*(?:x|@|pcs|units|ea)?\s*[$€£₹]?\s*(\d[\d,]*\.\d{1,2})\b/i);
+                if (m && /[a-z]/i.test(m[2]) && !/:\s*$/.test(m[2])) { p.items.push({ sku: m[1] || '', description: m[2].replace(/[|,\-–\s]+$/, ''), quantity: num(m[3]), unitPrice: num(m[4]), taxRate: num(tr) }) }
+            }
+            if (!p.items.length) p.items = blank().items; return p
+        }
+        /* ---------- extraction pipeline ---------- */
+        async function process() {
+            if (busy) return; const mode = $('#mode').value, text = $('#txt').value.trim(), imgs = files.filter(o => o.ty.startsWith('image'));
+            $('#perr').textContent = ''; if (!text && !imgs.length) { $('#perr').textContent = 'Add an image, a TXT file or pasted text first.'; return }
+            busy = true; $('#go').disabled = true; let result = null, partial = false;
+            try {
+                if (mode === 'local') { if (!text) throw new Error('Local mode needs text. Images require OCR or AI.'); status('Parsing locally', 'busy'); result = parseLocal(text) }
+                else if (mode === 'ocr') {
+                    if (!imgs.length) throw new Error('OCR mode needs at least one image.'); const out = [], errs = [];
+                    for (let i = 0; i < imgs.length; i++) { status(`Running OCR ${i + 1}/${imgs.length}`, 'busy'); try { out.push(`--- ${imgs[i].f.name} (page ${i + 1}) ---\n` + await OCR.run(imgs[i])) } catch (e) { errs.push(imgs[i].f.name + ': ' + e.message) } }
+                    if (errs.length) { $('#perr').textContent = 'OCR failed for: ' + errs.join(' | '); partial = out.length > 0 }
+                    if (!out.length) throw new Error('OCR failed for every image.'); $('#ocrOut').value = out.join('\n\n'); $('#ocrBox').classList.remove('hide'); $('#ocrBox').open = true;
+                    status('Parsing OCR text', 'busy'); result = parseLocal([text, ...out].filter(Boolean).join('\n'))
+                }
+                else { status('Sending to AI', 'busy'); try { result = await AI.extract(text, imgs); apiStatus('Gemini responded', 'ok') } catch (e) { apiStatus('Gemini error', 'err'); if (!text) throw e; status('Fallback processing', 'busy'); toast('AI failed (' + e.message + '). Used local parser.', 1); partial = true; result = parseLocal(text) } }
+                po = normalize(result); stage = 'Extracted'; renderPO(); status(partial ? 'Completed with warnings' : 'Completed', 'ok'); toast(partial ? 'Extraction finished with warnings.' : 'Extraction complete.')
+            }
+            catch (e) { status('Failed', 'err'); $('#perr').textContent = e.message; toast(e.message, 1) } finally { busy = false; $('#go').disabled = false }
+        }
+        $('#go').onclick = process;
+        /* ---------- samples ---------- */
+        const SAMPLES = [{ n: 'Technology Hardware: Northwind demo', t: `PURCHASE ORDER\nPO Number: PO-2026-0412\nOrder Date: 2026-03-02\nDelivery Date: 2026-03-20\nPayment Terms: Net 30\nCurrency: USD\nVendor: Sample Hardware Co. (fictional)\nBuyer: Example Corp (fictional)\nLAP-14 14in Laptop 5 $1200.00\nMON-27 27in Monitor 10 $310.50\nTax: 8%\nShipping: 45.00\nDiscount: 100.00` },
+        { n: 'Office Supplies: Demo stationery', t: `Purchase Order #OS-7781\nDate: 2026-04-11\nDue: 2026-04-25\nTerms: Net 15\nSupplier: Paper & Pen Demo Ltd\nBill To: Sample Office Inc\nPAP-A4 A4 Paper Ream 40 $4.75\nPEN-BL Blue Pens Box 12 $6.20\nFreight: 12.50` },
+        { n: 'Cloud / Software Services: Demo SaaS', t: `PO No: CS-9001\nIssue Date: 2026-05-01\nDue Date: 2026-05-31\nTerms: Net 45\nCurrency: EUR\nVendor: CloudSample GmbH\nBuyer: Placeholder AG\nSUB-PRO Pro Subscription 25 €39.00\nSUP-PRM Premium Support 1 €500.00\nVAT: 19%` }];
+        $('#smp').innerHTML = SAMPLES.map((s, i) => `<option value="${i}">${esc(s.n)}</option>`).join('');
+        const loadS = i => { $('#txt').value = SAMPLES[i].t; $('#mode').value = 'local'; toast('Sample loaded. Choose an engine and process.') };
+        $('#loadS').onclick = () => loadS($('#smp').value); $('#rndS').onclick = () => { const i = Math.floor(Math.random() * SAMPLES.length); $('#smp').value = i; loadS(i) };
+        /* ---------- history, export, print ---------- */
+        function renderHist() { const h = hist(); $('#hl').innerHTML = h.length ? h.map((r, i) => `<div class="hist"><b>${esc(r.po.poNumber || '(no number)')}</b><span>${esc(r.po.vendor.name || 'Unknown vendor')}</span><span>${r.po.items.length} items</span><span>${esc(r.po.currency)} ${calc(r.po).grand.toFixed(2)}</span><span class="hint">${new Date(r.savedAt).toLocaleString()}</span><span class="sp"></span><button class="btn" data-r="${i}">Restore</button></div>`).join('') : '<div class="empty">No saved purchase orders yet. Approve a PO in the workspace to keep it here.</div>' }
+        $('#hl').onclick = e => { const i = e.target.dataset.r; if (i === undefined) return; po = normalize(hist()[i].po); stage = 'Approved'; renderPO(); document.querySelector('nav button').click(); toast('PO restored.') };
+        $('#saveB').onclick = () => {
+            const bad = po.items.every(i => !i.description && !i.unitPrice); if (bad) { toast('Add at least one line item before saving.', 1); return }
+            const h = hist(); h.unshift({ savedAt: Date.now(), po: JSON.parse(JSON.stringify(po)) }); setHist(h); stage = 'Approved'; renderPO(); toast('PO approved and saved.')
+        };
+        $('#clrH').onclick = () => { if (confirm('Delete all saved purchase orders?')) { setHist([]); renderHist() } };
+        $('#clrPO').onclick = () => { po = blank(); stage = 'Draft'; renderPO(); $('#ocrBox').classList.add('hide') };
+        const fname = e => 'PO-' + (po.poNumber || 'draft').replace(/[^\w\-]+/g, '_') + '.' + e;
+        function dl(name, mime, data) { try { const a = document.createElement('a'), u = URL.createObjectURL(new Blob([data], { type: mime })); a.href = u; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1000) } catch (e) { toast('Export failed.', 1) } }
+        $('#jsonB').onclick = () => dl(fname('json'), 'application/json', JSON.stringify(po, null, 2));
+        $('#csvB').onclick = () => {
+            const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"', t = calc(po); const rows = [['PO Number', 'Issue Date', 'Vendor Name', 'Buyer Name', 'Item SKU', 'Description', 'Quantity', 'Unit Price', 'Tax Rate', 'Line Total'], ...po.items.map((i, n) => [po.poNumber, po.issueDate, po.vendor.name, po.buyer.name, i.sku, i.description, i.quantity, i.unitPrice, i.taxRate, t.rows[n].toFixed(2)])];
+            dl(fname('csv'), 'text/csv;charset=utf-8', '\uFEFF' + rows.map(r => r.map(q).join(',')).join('\r\n'))
+        };
+        $('#prtB').onclick = () => window.print();
+        /* ---------- settings ---------- */
+        $('#ocrP').innerHTML = Object.entries(OCR_PROVIDERS).map(([k, v]) => `<option value="${k}">${esc(v.name)}</option>`).join('');
+        function fillCfg() { $('#aiKey').value = cfg.ai.apiKey; $('#aiModel').value = cfg.ai.model; $('#aiUrl').value = cfg.ai.baseUrl; $('#ocrP').value = cfg.ocr.provider; $('#ocrUrl').value = cfg.ocr.endpoint; $('#ocrKey').value = cfg.ocr.apiKey; $('#ocrModel').value = cfg.ocr.model; $('#rem').checked = cfg.remember }
+        function readCfg() {
+            const u = (s, l) => normalizeEndpoint(s, l);
+            if (!$('#aiModel').value.trim()) throw new Error('Gemini model must not be empty.');
+            const aiUrl = u($('#aiUrl').value, 'Gemini'); const ocrUrl = u($('#ocrUrl').value, 'OCR');
+            cfg = { ai: { apiKey: $('#aiKey').value.trim(), model: $('#aiModel').value.trim(), baseUrl: aiUrl }, ocr: { provider: $('#ocrP').value, endpoint: ocrUrl, apiKey: $('#ocrKey').value.trim(), model: $('#ocrModel').value.trim() }, remember: $('#rem').checked }
+        }
+        $('#ocrP').onchange = () => { $('#ocrUrl').value = normalizeEndpoint(OCR_PROVIDERS[$('#ocrP').value].url, 'OCR') };
+        $('#showK').onclick = () => ['#aiKey', '#ocrKey'].forEach(s => $(s).type = $(s).type === 'password' ? 'text' : 'password');
+        $('#saveCfg').onclick = () => { try { readCfg(); saveCfg(); $('#cmsg').textContent = 'Settings saved.' } catch (e) { $('#cmsg').textContent = e.message } };
+        $('#resetCfg').onclick = () => { cfg = JSON.parse(JSON.stringify(DEFAULTS)); saveCfg(); fillCfg(); $('#cmsg').textContent = 'Defaults restored.' };
+        async function testWith(btn, fn, label, setter) { try { readCfg(); btn.disabled = true; $('#cmsg').textContent = 'Testing ' + label + '…'; await fn(); $('#cmsg').textContent = label + ': connection succeeded.'; setter && apiStatus(label + ' OK', 'ok') } catch (e) { $('#cmsg').textContent = label + ': ' + e.message; setter && apiStatus(label + ' failed', 'err') } finally { btn.disabled = false } }
+        $('#tAI').onclick = e => testWith(e.target, () => AI.test(), 'Gemini', 1);
+        $('#tOCR').onclick = e => testWith(e.target, () => OCR.test(), 'OCR', 0);
+        /* ---------- init ---------- */
+        fillCfg(); $('#hc').textContent = hist().length; renderPO();
+    </script>
+</body>
+
+</html>
